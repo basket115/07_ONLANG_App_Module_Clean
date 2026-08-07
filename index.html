@@ -42,9 +42,21 @@
     }
 
     .customer-id {
-      margin-top: 16px;
       font-weight: bold;
       color: #222;
+    }
+
+    .customer-name {
+      margin-top: 14px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .error {
+      margin-top: 14px;
+      color: #b00020;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -56,22 +68,78 @@
       <h1>ONLANG</h1>
       <p>App V1.0</p>
       <p id="customerStatus">Kunden-ID wird geprüft …</p>
+      <div id="customerResult"></div>
     </div>
   </main>
 
   <script>
+    const API_URL =
+      'https://script.google.com/macros/s/AKfycbzMQreJDGOz8SdncgJyYEMHcj7T1nYrk356FdCuUFQ42JAtg_n9VPUUMZ5EYEn8mXtF/exec';
+
     const params = new URLSearchParams(window.location.search);
     const kundenId = (params.get('kunde') || '').trim().toUpperCase();
 
     const customerStatus = document.getElementById('customerStatus');
+    const customerResult = document.getElementById('customerResult');
 
     if (!kundenId) {
       customerStatus.textContent = 'Keine Kunden-ID angegeben.';
     } else {
       customerStatus.innerHTML =
-        'Kunden-ID erkannt:<br><span class="customer-id">' +
+        'Kunden-ID erkannt: <span class="customer-id">' +
         kundenId +
         '</span>';
+
+      loadCustomer(kundenId);
+    }
+
+    async function loadCustomer(id) {
+      try {
+        customerResult.textContent = 'Kundendaten werden geladen …';
+
+        const url =
+          API_URL +
+          '?action=getCustomer&kunde=' +
+          encodeURIComponent(id);
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error('HTTP_' + response.status);
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+          customerResult.innerHTML =
+            '<div class="error">' +
+            escapeHtml(data.error || 'CUSTOMER_LOAD_FAILED') +
+            '</div>';
+          return;
+        }
+
+        const customer = data.customer;
+
+        customerResult.innerHTML =
+          '<div class="customer-name">' +
+          escapeHtml(customer.Vereinsname || '') +
+          '</div>' +
+          '<p>Sprache: ' +
+          escapeHtml(customer.Sprache || '') +
+          '</p>';
+      } catch (error) {
+        customerResult.innerHTML =
+          '<div class="error">CUSTOMER_LOAD_FAILED</div>';
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
   </script>
 
