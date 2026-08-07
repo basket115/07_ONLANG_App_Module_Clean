@@ -67,6 +67,31 @@
       color: #b00020;
       font-weight: bold;
     }
+.app-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.app-navigation button {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+#appContent {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#appContent h2 {
+  margin-bottom: 10px;
+}
   </style>
 </head>
 
@@ -89,6 +114,17 @@
       </p>
 
       <div id="customerResult"></div>
+<nav id="appNavigation" class="app-navigation" style="display:none;"></nav>
+
+<section id="appContent" style="display:none;">
+
+  <h2>Willkommen bei ONLANG</h2>
+
+  <p>
+    Deine Vereins-App wird hier aufgebaut.
+  </p>
+
+</section>
 
     </div>
   </main>
@@ -178,9 +214,11 @@
         const customer =
           data.customer;
 
-        applyBranding(customer);
+applyBranding(customer);
 applyLogo(customer);
 applyLanguage(customer);
+showAppShell();
+buildNavigation(customer);
 
 customerResult.innerHTML =
           '<div class="customer-name">' +
@@ -335,6 +373,57 @@ function applyLogo(customer) {
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
     }
+function showAppShell() {
+
+  const navigation =
+    document.getElementById('appNavigation');
+
+  const content =
+    document.getElementById('appContent');
+
+  if (navigation) {
+    navigation.style.display = 'flex';
+  }
+
+  if (content) {
+    content.style.display = 'block';
+  }
+}
+function buildNavigation(customer) {
+
+  const navigation =
+    document.getElementById('appNavigation');
+
+  if (!navigation) {
+    return;
+  }
+
+  const sprache =
+    String(customer.Sprache || 'de')
+      .toLowerCase();
+
+  const items =
+    sprache === 'hu'
+      ? [
+          'Kezdőlap',
+          'Hírek',
+          'Csapatok',
+          'Mérkőzések',
+          'Több'
+        ]
+      : [
+          'Start',
+          'News',
+          'Teams',
+          'Termine',
+          'Mehr'
+        ];
+
+  navigation.innerHTML =
+    items.map(function(item) {
+      return '<button>' + item + '</button>';
+    }).join('');
+}
   </script>
 
 </body>
