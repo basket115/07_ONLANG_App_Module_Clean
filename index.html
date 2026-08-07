@@ -428,6 +428,7 @@ function buildNavigation(customer) {
 }
 function openModule(moduleName) {
 
+
   const content =
     document.getElementById('appContent');
 
@@ -474,6 +475,36 @@ function openModule(moduleName) {
       '<h2>' + moduleName + '</h2>' +
       '<div id="teamsContainer">' +
       '<p>Teams werden geladen.</p>' +
+      '</div>';
+
+  }
+
+
+  // Termine-Modul
+  else if (
+    moduleName === 'Termine' ||
+    moduleName === 'Mérkőzések'
+  ) {
+
+    content.innerHTML =
+      '<h2>' + moduleName + '</h2>' +
+      '<div id="eventsContainer">' +
+      '<p>Termine werden geladen.</p>' +
+      '</div>';
+
+  }
+
+
+  // Mehr-Modul
+  else if (
+    moduleName === 'Mehr' ||
+    moduleName === 'Több'
+  ) {
+
+    content.innerHTML =
+      '<h2>' + moduleName + '</h2>' +
+      '<div id="moreContainer">' +
+      '<p>Weitere Funktionen werden geladen.</p>' +
       '</div>';
 
   }
