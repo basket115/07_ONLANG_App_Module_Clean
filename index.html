@@ -435,11 +435,24 @@ function openModule(moduleName) {
     return;
   }
 
-  content.innerHTML =
-    '<h2>' +
-    moduleName +
-    '</h2>' +
-    '<p>Modul wird vorbereitet.</p>';
+  if (
+    moduleName === 'Start' ||
+    moduleName === 'Kezdőlap'
+  ) {
+
+    content.innerHTML =
+      '<h2>Willkommen bei ONLANG</h2>' +
+      '<p>Deine Vereins-App ist bereit.</p>';
+
+  } else {
+
+    content.innerHTML =
+      '<h2>' +
+      moduleName +
+      '</h2>' +
+      '<p>Modul wird vorbereitet.</p>';
+
+  }
 }
   </script>
 
