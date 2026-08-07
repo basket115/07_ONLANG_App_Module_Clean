@@ -421,8 +421,25 @@ function buildNavigation(customer) {
 
   navigation.innerHTML =
     items.map(function(item) {
-      return '<button>' + item + '</button>';
+      return '<button onclick="openModule(\'' + item + '\')">' 
+       + item +
+       '</button>';
     }).join('');
+}
+function openModule(moduleName) {
+
+  const content =
+    document.getElementById('appContent');
+
+  if (!content) {
+    return;
+  }
+
+  content.innerHTML =
+    '<h2>' +
+    moduleName +
+    '</h2>' +
+    '<p>Modul wird vorbereitet.</p>';
 }
   </script>
 
