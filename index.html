@@ -25,11 +25,22 @@
       justify-content: center;
       padding: 24px;
       border-top: 12px solid transparent;
+      background: #ffffff;
     }
 
     .status {
       text-align: center;
       max-width: 500px;
+      padding: 28px;
+      border-radius: 18px;
+    }
+
+    .customer-logo {
+      display: none;
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin: 0 auto 18px;
     }
 
     .status h1 {
@@ -39,19 +50,16 @@
 
     .status p {
       margin: 6px 0;
-      color: #666;
     }
 
     .customer-id {
       font-weight: bold;
-      color: #222;
     }
 
     .customer-name {
       margin-top: 14px;
       font-size: 22px;
       font-weight: bold;
-      color: #222;
     }
 
     .error {
@@ -65,11 +73,23 @@
 <body>
 
   <main id="app">
-    <div class="status">
+    <div class="status" id="statusBox">
+
+      <img
+        id="customerLogo"
+        class="customer-logo"
+        alt=""
+      >
+
       <h1>ONLANG</h1>
       <p>App V1.0</p>
-      <p id="customerStatus">Kunden-ID wird geprüft …</p>
+
+      <p id="customerStatus">
+        Kunden-ID wird geprüft …
+      </p>
+
       <div id="customerResult"></div>
+
     </div>
   </main>
 
@@ -77,81 +97,237 @@
     const API_URL =
       'https://script.google.com/macros/s/AKfycbzMQreJDGOz8SdncgJyYEMHcj7T1nYrk356FdCuUFQ42JAtg_n9VPUUMZ5EYEn8mXtF/exec';
 
-    const params = new URLSearchParams(window.location.search);
-    const kundenId = (params.get('kunde') || '').trim().toUpperCase();
+    const params =
+      new URLSearchParams(window.location.search);
 
-    const app = document.getElementById('app');
-    const customerStatus = document.getElementById('customerStatus');
-    const customerResult = document.getElementById('customerResult');
+    const kundenId =
+      (params.get('kunde') || '')
+        .trim()
+        .toUpperCase();
+
+    const app =
+      document.getElementById('app');
+
+    const statusBox =
+      document.getElementById('statusBox');
+
+    const customerLogo =
+      document.getElementById('customerLogo');
+
+    const customerStatus =
+      document.getElementById('customerStatus');
+
+    const customerResult =
+      document.getElementById('customerResult');
+
 
     if (!kundenId) {
-      customerStatus.textContent = 'Keine Kunden-ID angegeben.';
+
+      customerStatus.textContent =
+        'Keine Kunden-ID angegeben.';
+
     } else {
+
       customerStatus.innerHTML =
-        'Kunden-ID erkannt: <span class="customer-id">' +
+        'Kunden-ID erkannt: ' +
+        '<span class="customer-id">' +
         escapeHtml(kundenId) +
         '</span>';
 
       loadAppStart(kundenId);
     }
 
+
     async function loadAppStart(id) {
+
       try {
-        customerResult.textContent = 'Kundendaten werden geladen …';
+
+        customerResult.textContent =
+          'Kundendaten werden geladen …';
 
         const url =
           API_URL +
           '?action=getAppStart&kunde=' +
           encodeURIComponent(id);
 
-        const response = await fetch(url);
+        const response =
+          await fetch(url);
 
         if (!response.ok) {
-          throw new Error('HTTP_' + response.status);
+          throw new Error(
+            'HTTP_' + response.status
+          );
         }
 
-        const data = await response.json();
+        const data =
+          await response.json();
 
         if (!data.success) {
+
           customerResult.innerHTML =
             '<div class="error">' +
-            escapeHtml(data.error || 'APP_START_FAILED') +
+            escapeHtml(
+              data.error ||
+              'APP_START_FAILED'
+            ) +
             '</div>';
+
           return;
         }
 
-        const customer = data.customer;
+        const customer =
+          data.customer;
 
         applyBranding(customer);
+applyLogo(customer);
+applyLanguage(customer);
 
-        customerResult.innerHTML =
+customerResult.innerHTML =
           '<div class="customer-name">' +
-          escapeHtml(customer.Vereinsname || '') +
+          escapeHtml(
+            customer.Vereinsname || ''
+          ) +
           '</div>' +
-          '<p>Sprache: ' +
-          escapeHtml(customer.Sprache || '') +
+          '<p>' +
+getText('language', customer.Sprache) +
+          escapeHtml(
+            customer.Sprache || ''
+          ) +
           '</p>';
 
       } catch (error) {
+
         customerResult.innerHTML =
-          '<div class="error">APP_START_FAILED</div>';
+          '<div class="error">' +
+          'APP_START_FAILED' +
+          '</div>';
       }
     }
+function applyLanguage(customer) {
+
+  const sprache =
+    String(customer.Sprache || '')
+      .toLowerCase();
+
+  const idText =
+  getText('customerId', sprache);
+
+  customerStatus.innerHTML =
+    idText +
+    '<span class="customer-id">' +
+    escapeHtml(kundenId) +
+    '</span>';
+}
+function getText(key, sprache) {
+
+  const lang =
+    String(sprache || 'de')
+      .toLowerCase();
+
+  const texts = {
+
+    de: {
+      customerId: 'Kunden-ID erkannt: ',
+      language: 'Sprache: '
+    },
+
+    hu: {
+      customerId: 'Ügyfél-azonosító: ',
+      language: 'Nyelv: '
+    }
+
+  };
+
+  if (texts[lang] && texts[lang][key]) {
+    return texts[lang][key];
+  }
+
+  return texts.de[key] || key;
+}
 
     function applyBranding(customer) {
+
       const primaerfarbe =
-        String(customer.Primaerfarbe || '').trim();
+        String(
+          customer.Primaerfarbe || ''
+        ).trim();
+
+      const sekundaerfarbe =
+        String(
+          customer.Sekundaerfarbe || ''
+        ).trim();
+
+      const akzentfarbe =
+        String(
+          customer.Akzentfarbe || ''
+        ).trim();
+
 
       if (isValidHexColor(primaerfarbe)) {
-        app.style.borderTopColor = primaerfarbe;
+
+        app.style.borderTopColor =
+          primaerfarbe;
+
+        statusBox.style.backgroundColor =
+          primaerfarbe;
+      }
+
+
+      if (isValidHexColor(sekundaerfarbe)) {
+
+        statusBox.style.color =
+          sekundaerfarbe;
+      }
+
+
+      if (isValidHexColor(akzentfarbe)) {
+
+        app.style.backgroundColor =
+          akzentfarbe;
       }
     }
 
+
+function applyLogo(customer) {
+  const logoUrl =
+    String(
+      customer.Logo_URL || ''
+    ).trim();
+
+  customerLogo.onload = function() {
+    customerLogo.style.display = 'block';
+  };
+
+  customerLogo.onerror = function() {
+    customerLogo.removeAttribute('src');
+    customerLogo.style.display = 'none';
+  };
+
+  if (!logoUrl) {
+    customerLogo.removeAttribute('src');
+    customerLogo.style.display = 'none';
+    return;
+  }
+
+  customerLogo.alt =
+    customer.Vereinsname
+      ? customer.Vereinsname + ' Logo'
+      : 'Vereinslogo';
+
+  customerLogo.style.display = 'none';
+  customerLogo.src = logoUrl;
+}
+
+
     function isValidHexColor(value) {
-      return /^#[0-9A-Fa-f]{6}$/.test(value);
+
+      return /^#[0-9A-Fa-f]{6}$/
+        .test(value);
     }
 
+
     function escapeHtml(value) {
+
       return String(value)
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
