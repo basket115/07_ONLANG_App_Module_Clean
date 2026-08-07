@@ -435,35 +435,61 @@ function openModule(moduleName) {
     return;
   }
 
-if (
-  moduleName === 'Start' ||
-  moduleName === 'Kezdőlap'
-) {
 
-  content.innerHTML =
-    '<h2>Willkommen bei ONLANG</h2>' +
-    '<p>Deine Vereins-App ist bereit.</p>';
+  // Start-Modul
+  if (
+    moduleName === 'Start' ||
+    moduleName === 'Kezdőlap'
+  ) {
 
-} else if (
-  moduleName === 'News' ||
-  moduleName === 'Hírek'
-) {
+    content.innerHTML =
+      '<h2>Willkommen bei ONLANG</h2>' +
+      '<p>Deine Vereins-App ist bereit.</p>';
 
-  content.innerHTML =
-    '<h2>' + moduleName + '</h2>' +
-    '<div id="newsContainer">' +
-    '<p>News werden geladen.</p>' +
-    '</div>';
+  }
 
-} else {
 
-  content.innerHTML =
-    '<h2>' +
-    moduleName +
-    '</h2>' +
-    '<p>Modul wird vorbereitet.</p>';
+  // News-Modul
+  else if (
+    moduleName === 'News' ||
+    moduleName === 'Hírek'
+  ) {
 
-}
+    content.innerHTML =
+      '<h2>' + moduleName + '</h2>' +
+      '<div id="newsContainer">' +
+      '<p>News werden geladen.</p>' +
+      '</div>';
+
+  }
+
+
+  // Teams-Modul
+  else if (
+    moduleName === 'Teams' ||
+    moduleName === 'Csapatok'
+  ) {
+
+    content.innerHTML =
+      '<h2>' + moduleName + '</h2>' +
+      '<div id="teamsContainer">' +
+      '<p>Teams werden geladen.</p>' +
+      '</div>';
+
+  }
+
+
+  // Andere Module
+  else {
+
+    content.innerHTML =
+      '<h2>' +
+      moduleName +
+      '</h2>' +
+      '<p>Modul wird vorbereitet.</p>';
+
+  }
+
 }
   </script>
 
