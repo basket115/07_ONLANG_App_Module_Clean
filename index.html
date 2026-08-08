@@ -491,6 +491,52 @@ function buildNavigation(customer) {
     }).join('');
 }
 
+function fetchStudioPosts(customerId) {
+
+  // Vorbereitung für Modul 05 Studio API
+
+  console.log(
+    "FETCH STUDIO POSTS:",
+    customerId
+  );
+
+
+  return [
+    {
+      id: "STUDIO-TEST001",
+      customerId: customerId,
+      category: "News",
+      headline: "Studio Verbindung vorbereitet",
+      text: "Dieser Beitrag kommt später automatisch aus dem ONLANG Studio.",
+      date: "08.08.2026",
+      imageUrl: "",
+      videoUrl: "",
+      sponsor: "ONLANG"
+    }
+  ];
+
+}
+
+function loadNewsData(customerId) {
+
+  const studioPosts =
+    fetchStudioPosts(customerId);
+
+
+  if (
+    studioPosts &&
+    studioPosts.length > 0
+  ) {
+
+    return studioPosts;
+
+  }
+
+
+  return getAppNews(customerId);
+
+}
+
 function getAppNews(customerId) {
 
 
@@ -564,7 +610,7 @@ function openModule(moduleName) {
 
   // News Daten für Kunden laden
   const newsList =
-    getAppNews(customerId);
+  loadNewsData(customerId);
 
   const demoPost =
     newsList[0];
