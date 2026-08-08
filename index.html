@@ -106,7 +106,7 @@
 
 .content-card-media {
   width: 100%;
-  height: 180px;
+  aspect-ratio: 16 / 7;
   background: #eeeeee;
   border-radius: 12px;
   overflow: hidden;
@@ -117,7 +117,9 @@
 .content-card-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  display: block;
+  background: #eeeeee;
 }
 
 .media-placeholder {
@@ -491,77 +493,49 @@ function buildNavigation(customer) {
     }).join('');
 }
 
-function fetchStudioPosts(customerId) {
+async function fetchStudioPosts(customerId) {
 
   const STUDIO_API_URL =
     'https://script.google.com/macros/s/AKfycbzxVnBKGbziJqYP0TZ3BHmk39TbyS5NmsxlZ2bDb0cgncfPsukRkvLsZSEmxzemZhAZCQ/exec';
 
-
   try {
 
     const url =
-  STUDIO_API_URL +
-  '?action=getPosts&kundenId=' +
-  encodeURIComponent(customerId) +
-  '&status=PUBLISHED';
-
+      STUDIO_API_URL +
+      '?action=getPosts&kundenId=' +
+      encodeURIComponent(customerId) +
+      '&status=PUBLISHED';
 
     console.log(
       "FETCH STUDIO POSTS:",
       url
     );
 
+    const response =
+      await fetch(url);
 
-    // synchroner Test-Aufruf
-    const request =
-      new XMLHttpRequest();
-
-    request.open(
-      "GET",
-      url,
-      false
-    );
-
-    request.send(null);
-
-
-
-    if (request.status !== 200) {
-
-      console.log(
-        "STUDIO API FEHLER:",
-        request.status
+    if (!response.ok) {
+      throw new Error(
+        "HTTP " + response.status
       );
-
-      return [];
-
     }
 
-
-
     const data =
-      JSON.parse(
-        request.responseText
-      );
-
-
+      await response.json();
 
     if (
       !data.success ||
       !data.posts
     ) {
-
       return [];
-
     }
-
-
 
     return data.posts.map(function(post) {
 
       return {
 
-        id: post.postId,
+        id:
+          post.postId,
 
         customerId:
           post.kundenId,
@@ -581,6 +555,15 @@ function fetchStudioPosts(customerId) {
         imageUrl:
           post.bildUrl || "",
 
+        imageType:
+          post.bildTyp || "",
+
+        imageWidth:
+          post.bildBreite || "",
+
+        imageHeight:
+          post.bildHoehe || "",
+
         videoUrl:
           post.videoUrl || "",
 
@@ -591,15 +574,12 @@ function fetchStudioPosts(customerId) {
 
     });
 
-
   } catch(error) {
-
 
     console.log(
       "FETCH STUDIO POSTS ERROR:",
       error
     );
-
 
     return [];
 
@@ -607,10 +587,10 @@ function fetchStudioPosts(customerId) {
 
 }
 
-function loadNewsData(customerId) {
+async function loadNewsData(customerId) {
 
   const studioPosts =
-    fetchStudioPosts(customerId);
+    await fetchStudioPosts(customerId);
 
   if (
     studioPosts &&
@@ -621,7 +601,7 @@ function loadNewsData(customerId) {
 
   }
 
-  return getAppNews(customerId);
+  return [];
 
 }
 
@@ -700,7 +680,7 @@ function getAppNews(customerId) {
 
 
 
-function openModule(moduleName) {
+async function openModule(moduleName) {
 
   const content =
     document.getElementById('appContent');
@@ -716,15 +696,6 @@ function openModule(moduleName) {
 
   const customerId =
     params.get('kunde');
-
-
-  // News Daten für Kunden laden
-  const newsList =
-  loadNewsData(customerId);
-
-  const demoPost =
-    newsList[0];
-
 
 
   // Start-Modul
@@ -756,6 +727,9 @@ else if (
   moduleName === 'Hírek'
 ) {
 
+  // Studio-Daten nur dann laden, wenn News/Hírek tatsächlich geöffnet wird.
+  const newsList =
+    await loadNewsData(customerId);
 
   if (
     !newsList ||
@@ -787,9 +761,17 @@ else if (
           // Bild / Video Bereich
           '<div class="content-card-media">' +
 
-            '<div class="media-placeholder">' +
-              'ONLANG' +
-            '</div>' +
+            (
+  post.imageUrl
+    ?
+    '<img class="content-card-image" src="' +
+    post.imageUrl +
+    '" alt="Bild">' 
+    :
+    '<div class="media-placeholder">' +
+    'ONLANG' +
+    '</div>'
+) +
 
             '<video class="content-card-video" controls style="display:none;"></video>' +
 
