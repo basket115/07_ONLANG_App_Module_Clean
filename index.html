@@ -612,7 +612,6 @@ function loadNewsData(customerId) {
   const studioPosts =
     fetchStudioPosts(customerId);
 
-
   if (
     studioPosts &&
     studioPosts.length > 0
@@ -622,10 +621,11 @@ function loadNewsData(customerId) {
 
   }
 
-
   return getAppNews(customerId);
 
 }
+
+
 
 function getAppNews(customerId) {
 
@@ -672,11 +672,31 @@ function getAppNews(customerId) {
 
 
 
+  // V006 - BBK
+  if (customerId === "V006") {
+
+    return [
+      {
+        id: "V006-TEST001",
+        customerId: "V006",
+        category: "News",
+        headline: "Willkommen beim BBK",
+        text: "Automatischer BBK Testbeitrag.",
+        date: "08.08.2026",
+        imageUrl: "",
+        videoUrl: "",
+        sponsor: "ONLANG"
+      }
+    ];
+
+  }
+
+
+
   // unbekannter Kunde
   return [];
 
 }
-
 
 
 
@@ -731,88 +751,99 @@ function openModule(moduleName) {
 
 
   // News-Modul
-  else if (
-    moduleName === 'News' ||
-    moduleName === 'Hírek'
+else if (
+  moduleName === 'News' ||
+  moduleName === 'Hírek'
+) {
+
+
+  if (
+    !newsList ||
+    newsList.length === 0
   ) {
-
-
-    if (!demoPost) {
-      content.innerHTML =
-        '<div class="content-card">' +
-        '<div class="content-card-title">' +
-        'Keine Beiträge vorhanden' +
-        '</div>' +
-        '</div>';
-
-      return;
-    }
-
 
     content.innerHTML =
       '<div class="content-card">' +
-
-
-      // Bild / Video Bereich
-      '<div class="content-card-media">' +
-      '<div class="media-placeholder">ONLANG</div>' +
-      '<video class="content-card-video" controls style="display:none;"></video>' +
-      '</div>' +
-
-
-      // Kategorie
-      '<div class="content-card-category">' +
-      '📰 ' + demoPost.category +
-      '</div>' +
-
-
-      // Headline
-      '<div class="content-card-title">' +
-      demoPost.headline +
-      '</div>' +
-
-
-      // Text
-      '<div class="content-card-text">' +
-      demoPost.text +
-      '</div>' +
-
-
-      // Datum
-      '<div class="content-card-date">' +
-      demoPost.date +
-      '</div>' +
-
-
-      // Icon Bar
-      '<div class="icon-bar">' +
-      '<span class="icon-item">❤️</span>' +
-      '<span class="icon-item">💬</span>' +
-      '<span class="icon-item">🔗</span>' +
-      '<span class="icon-item">📤</span>' +
-      '<span class="icon-item">⭐</span>' +
-      '</div>' +
-
-
-      // Sponsor / ONLANG
-      '<div class="sponsor-box">' +
-
-      '<div class="sponsor-title">' +
-      'Sponsor / ONLANG' +
-      '</div>' +
-
-      '<div class="sponsor-placeholder">' +
-      demoPost.sponsor +
-      '<br>' +
-      'Digitale Vereinsplattform' +
-      '</div>' +
-
-      '</div>' +
-
-
+        '<div class="content-card-title">' +
+          'Keine Beiträge vorhanden' +
+        '</div>' +
       '</div>';
 
+    return;
+
   }
+
+
+
+  content.innerHTML =
+
+    newsList.map(function(post) {
+
+      return (
+
+        '<div class="content-card">' +
+
+
+          // Bild / Video Bereich
+          '<div class="content-card-media">' +
+
+            '<div class="media-placeholder">' +
+              'ONLANG' +
+            '</div>' +
+
+            '<video class="content-card-video" controls style="display:none;"></video>' +
+
+          '</div>' +
+
+
+
+          // Kategorie
+          '<div class="content-card-category">' +
+            '▤ ' +
+            (post.category || 'News') +
+          '</div>' +
+
+
+
+          // Headline
+          '<div class="content-card-title">' +
+            (post.headline || '') +
+          '</div>' +
+
+
+
+          // Text
+          '<div class="content-card-text">' +
+            (post.text || '') +
+          '</div>' +
+
+
+
+          // Datum
+          '<div class="content-card-date">' +
+            (post.date || '') +
+          '</div>' +
+
+
+
+          // Sponsor
+          '<div class="content-card-sponsor">' +
+            '💗 💬 🔗 🏠 ⭐<br>' +
+            'Sponsor / ' +
+            (post.sponsor || 'ONLANG') +
+            '<br>' +
+            'ONLANG<br>' +
+            'Digitale Vereinsplattform' +
+          '</div>' +
+
+
+        '</div>'
+
+      );
+
+    }).join('');
+
+}
 
 
 
