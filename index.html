@@ -493,27 +493,116 @@ function buildNavigation(customer) {
 
 function fetchStudioPosts(customerId) {
 
-  // Vorbereitung für Modul 05 Studio API
-
-  console.log(
-    "FETCH STUDIO POSTS:",
-    customerId
-  );
+  const STUDIO_API_URL =
+    'https://script.google.com/macros/s/AKfycbzxVnBKGbziJqYP0TZ3BHmk39TbyS5NmsxlZ2bDb0cgncfPsukRkvLsZSEmxzemZhAZCQ/exec';
 
 
-  return [
-    {
-      id: "STUDIO-TEST001",
-      customerId: customerId,
-      category: "News",
-      headline: "Studio Verbindung vorbereitet",
-      text: "Dieser Beitrag kommt später automatisch aus dem ONLANG Studio.",
-      date: "08.08.2026",
-      imageUrl: "",
-      videoUrl: "",
-      sponsor: "ONLANG"
+  try {
+
+    const url =
+      STUDIO_API_URL +
+      '?action=getPosts&kundenId=' +
+      encodeURIComponent(customerId);
+
+
+    console.log(
+      "FETCH STUDIO POSTS:",
+      url
+    );
+
+
+    // synchroner Test-Aufruf
+    const request =
+      new XMLHttpRequest();
+
+    request.open(
+      "GET",
+      url,
+      false
+    );
+
+    request.send(null);
+
+
+
+    if (request.status !== 200) {
+
+      console.log(
+        "STUDIO API FEHLER:",
+        request.status
+      );
+
+      return [];
+
     }
-  ];
+
+
+
+    const data =
+      JSON.parse(
+        request.responseText
+      );
+
+
+
+    if (
+      !data.success ||
+      !data.posts
+    ) {
+
+      return [];
+
+    }
+
+
+
+    return data.posts.map(function(post) {
+
+      return {
+
+        id: post.postId,
+
+        customerId:
+          post.kundenId,
+
+        category:
+          post.kategorie,
+
+        headline:
+          post.titel,
+
+        text:
+          post.inhalt,
+
+        date:
+          post.erstelltAm,
+
+        imageUrl:
+          post.bildUrl || "",
+
+        videoUrl:
+          post.videoUrl || "",
+
+        sponsor:
+          "ONLANG"
+
+      };
+
+    });
+
+
+  } catch(error) {
+
+
+    console.log(
+      "FETCH STUDIO POSTS ERROR:",
+      error
+    );
+
+
+    return [];
+
+  }
 
 }
 
