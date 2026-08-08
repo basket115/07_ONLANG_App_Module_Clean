@@ -500,9 +500,10 @@ function fetchStudioPosts(customerId) {
   try {
 
     const url =
-      STUDIO_API_URL +
-      '?action=getPosts&kundenId=' +
-      encodeURIComponent(customerId);
+  STUDIO_API_URL +
+  '?action=getPosts&kundenId=' +
+  encodeURIComponent(customerId) +
+  '&status=PUBLISHED';
 
 
     console.log(
