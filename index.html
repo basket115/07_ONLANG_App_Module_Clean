@@ -735,6 +735,60 @@ async function fetchSportsTeams(customerId) {
   }
 }
 
+
+async function fetchSportsGames(customerId) {
+
+  const SPORTS_API_URL =
+    'https://script.google.com/macros/s/AKfycbwxEzGeTyvqyUWJBzAhjT59onUEjRgIpNcbK_m-60MRM5dxg1Q3BMTuRfnoutyvi73R/exec';
+
+  try {
+
+    const url =
+      SPORTS_API_URL +
+      '?action=getGames&kunde=' +
+      encodeURIComponent(customerId);
+
+    const response =
+      await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        'HTTP ' + response.status
+      );
+    }
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      return [];
+    }
+
+    if (Array.isArray(data.games)) {
+      return data.games;
+    }
+
+    if (
+      data.data &&
+      Array.isArray(data.data.games)
+    ) {
+      return data.data.games;
+    }
+
+    return [];
+
+  } catch(error) {
+
+    console.log(
+      'FETCH SPORTS GAMES ERROR:',
+      error
+    );
+
+    return [];
+
+  }
+}
+
 async function openModule(moduleName) {
 
   const content =
@@ -1007,20 +1061,129 @@ else if (
 
     content.innerHTML =
       '<div class="content-card">' +
-
-      '<div class="content-card-category">' +
-      '📅 ' + moduleName +
-      '</div>' +
-
-      '<div class="content-card-title">' +
-      moduleName +
-      '</div>' +
-
-      '<div class="content-card-text">' +
-      'Termine werden geladen.' +
-      '</div>' +
-
+        '<div class="content-card-category">📅 ' +
+          moduleName +
+        '</div>' +
+        '<div class="content-card-title">' +
+          moduleName +
+        '</div>' +
+        '<div class="content-card-text">' +
+          'Termine werden geladen …' +
+        '</div>' +
       '</div>';
+
+    const games =
+      await fetchSportsGames(customerId);
+
+    if (
+      !games ||
+      games.length === 0
+    ) {
+
+      content.innerHTML =
+        '<div class="content-card">' +
+          '<div class="content-card-category">📅 ' +
+            moduleName +
+          '</div>' +
+          '<div class="content-card-title">' +
+            moduleName +
+          '</div>' +
+          '<div class="content-card-text">' +
+            'Keine Termine vorhanden.' +
+          '</div>' +
+        '</div>';
+
+      return;
+    }
+
+    const sortedGames =
+      games.slice().sort(function(a, b) {
+        const aKey =
+          String(a.Spiel_Datum || '') + ' ' +
+          String(a.Spiel_Uhrzeit || '');
+        const bKey =
+          String(b.Spiel_Datum || '') + ' ' +
+          String(b.Spiel_Uhrzeit || '');
+        return aKey.localeCompare(bKey);
+      });
+
+    content.innerHTML =
+      sortedGames.map(function(game) {
+
+        const date =
+          game.Spiel_Datum || '';
+
+        const time =
+          game.Spiel_Uhrzeit || '';
+
+        const venue =
+          game.Spielort || '';
+
+        const home =
+          game.Heim_Team_ID || '';
+
+        const away =
+          game.Gast_Team_ID || '';
+
+        const status =
+          game.Status || '';
+
+        const homePoints =
+          game.Heim_Punkte;
+
+        const awayPoints =
+          game.Gast_Punkte;
+
+        const hasScore =
+          homePoints !== '' &&
+          homePoints !== null &&
+          homePoints !== undefined &&
+          awayPoints !== '' &&
+          awayPoints !== null &&
+          awayPoints !== undefined;
+
+        return (
+          '<div class="content-card">' +
+
+            '<div class="content-card-category">' +
+              '📅 ' +
+              escapeHtml(status || 'Spiel') +
+            '</div>' +
+
+            '<div class="content-card-title">' +
+              escapeHtml(date) +
+              (time ? ' · ' + escapeHtml(time) : '') +
+            '</div>' +
+
+            '<div class="content-card-text">' +
+
+              '<strong>Heim:</strong> ' +
+              escapeHtml(home) +
+              '<br>' +
+
+              '<strong>Gast:</strong> ' +
+              escapeHtml(away) +
+              '<br>' +
+
+              (venue
+                ? '<strong>Ort:</strong> ' +
+                  escapeHtml(venue) +
+                  '<br>'
+                : '') +
+
+              (hasScore
+                ? '<strong>Ergebnis:</strong> ' +
+                  escapeHtml(homePoints) +
+                  ':' +
+                  escapeHtml(awayPoints)
+                : '') +
+
+            '</div>' +
+
+          '</div>'
+        );
+
+      }).join('');
 
   }
 
