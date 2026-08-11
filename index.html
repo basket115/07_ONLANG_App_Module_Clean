@@ -789,6 +789,60 @@ async function fetchSportsGames(customerId) {
   }
 }
 
+
+async function fetchSportsStandings(customerId) {
+
+  const SPORTS_API_URL =
+    'https://script.google.com/macros/s/AKfycbwxEzGeTyvqyUWJBzAhjT59onUEjRgIpNcbK_m-60MRM5dxg1Q3BMTuRfnoutyvi73R/exec';
+
+  try {
+
+    const url =
+      SPORTS_API_URL +
+      '?action=getStandings&kunde=' +
+      encodeURIComponent(customerId);
+
+    const response =
+      await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        'HTTP ' + response.status
+      );
+    }
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      return [];
+    }
+
+    if (Array.isArray(data.standings)) {
+      return data.standings;
+    }
+
+    if (
+      data.data &&
+      Array.isArray(data.data.standings)
+    ) {
+      return data.data.standings;
+    }
+
+    return [];
+
+  } catch(error) {
+
+    console.log(
+      'FETCH SPORTS STANDINGS ERROR:',
+      error
+    );
+
+    return [];
+
+  }
+}
+
 async function openModule(moduleName) {
 
   const content =
@@ -953,12 +1007,21 @@ else if (
           moduleName +
         '</div>' +
         '<div class="content-card-text">' +
-          'Teams werden geladen …' +
+          'Teams und Tabellen werden geladen …' +
         '</div>' +
       '</div>';
 
+    const results =
+      await Promise.all([
+        fetchSportsTeams(customerId),
+        fetchSportsStandings(customerId)
+      ]);
+
     const teams =
-      await fetchSportsTeams(customerId);
+      results[0] || [];
+
+    const standings =
+      results[1] || [];
 
     if (
       !teams ||
@@ -981,8 +1044,28 @@ else if (
       return;
     }
 
+    const standingsByTeamId = {};
+
+    standings.forEach(function(row) {
+
+      const teamId =
+        row.Team_ID ||
+        row.teamId ||
+        '';
+
+      if (teamId) {
+        standingsByTeamId[teamId] = row;
+      }
+
+    });
+
     content.innerHTML =
       teams.map(function(team) {
+
+        const teamId =
+          team.Team_ID ||
+          team.teamId ||
+          '';
 
         const teamName =
           team.Team_Name ||
@@ -1010,6 +1093,39 @@ else if (
           team.Liga_ID ||
           team.ligaId ||
           '';
+
+        const standing =
+          standingsByTeamId[teamId] || null;
+
+        const standingHtml =
+          standing
+            ? (
+                '<br><br>' +
+                '<strong>Tabelle</strong><br>' +
+                '<strong>Platz:</strong> ' +
+                escapeHtml(standing.Platz ?? '') +
+                '<br>' +
+                '<strong>Spiele:</strong> ' +
+                escapeHtml(standing.Spiele ?? '') +
+                ' · ' +
+                '<strong>Siege:</strong> ' +
+                escapeHtml(standing.Siege ?? '') +
+                ' · ' +
+                '<strong>Niederlagen:</strong> ' +
+                escapeHtml(standing.Niederlagen ?? '') +
+                '<br>' +
+                '<strong>Punkte:</strong> ' +
+                escapeHtml(standing.Punkte_Fuer ?? '') +
+                ':' +
+                escapeHtml(standing.Punkte_Gegen ?? '') +
+                ' (' +
+                escapeHtml(standing.Punktedifferenz ?? '') +
+                ')' +
+                '<br>' +
+                '<strong>Tabellenpunkte:</strong> ' +
+                escapeHtml(standing.Tabellenpunkte ?? '')
+              )
+            : '';
 
         return (
           '<div class="content-card">' +
@@ -1042,6 +1158,7 @@ else if (
                 ? '<strong>Liga:</strong> ' +
                   escapeHtml(leagueId)
                 : '') +
+              standingHtml +
             '</div>' +
 
           '</div>'
