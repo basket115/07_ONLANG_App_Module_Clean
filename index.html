@@ -680,6 +680,61 @@ function getAppNews(customerId) {
 
 
 
+
+async function fetchSportsTeams(customerId) {
+
+  const SPORTS_API_URL =
+    'https://script.google.com/macros/s/AKfycbwxEzGeTyvqyUWJBzAhjT59onUEjRgIpNcbK_m-60MRM5dxg1Q3BMTuRfnoutyvi73R/exec';
+
+  try {
+
+    const url =
+      SPORTS_API_URL +
+      '?action=getTeams&kunde=' +
+      encodeURIComponent(customerId);
+
+    const response =
+      await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(
+        'HTTP ' + response.status
+      );
+    }
+
+    const data =
+      await response.json();
+
+    if (!data.success) {
+      return [];
+    }
+
+    // Modul 08 liefert je nach Version teams direkt oder unter data.teams.
+    if (Array.isArray(data.teams)) {
+      return data.teams;
+    }
+
+    if (
+      data.data &&
+      Array.isArray(data.data.teams)
+    ) {
+      return data.data.teams;
+    }
+
+    return [];
+
+  } catch(error) {
+
+    console.log(
+      'FETCH SPORTS TEAMS ERROR:',
+      error
+    );
+
+    return [];
+
+  }
+}
+
 async function openModule(moduleName) {
 
   const content =
@@ -837,20 +892,108 @@ else if (
 
     content.innerHTML =
       '<div class="content-card">' +
-
-      '<div class="content-card-category">' +
-      '🏀 ' + moduleName +
-      '</div>' +
-
-      '<div class="content-card-title">' +
-      moduleName +
-      '</div>' +
-
-      '<div class="content-card-text">' +
-      'Teams werden geladen.' +
-      '</div>' +
-
+        '<div class="content-card-category">🏀 ' +
+          moduleName +
+        '</div>' +
+        '<div class="content-card-title">' +
+          moduleName +
+        '</div>' +
+        '<div class="content-card-text">' +
+          'Teams werden geladen …' +
+        '</div>' +
       '</div>';
+
+    const teams =
+      await fetchSportsTeams(customerId);
+
+    if (
+      !teams ||
+      teams.length === 0
+    ) {
+
+      content.innerHTML =
+        '<div class="content-card">' +
+          '<div class="content-card-category">🏀 ' +
+            moduleName +
+          '</div>' +
+          '<div class="content-card-title">' +
+            moduleName +
+          '</div>' +
+          '<div class="content-card-text">' +
+            'Keine Teams vorhanden.' +
+          '</div>' +
+        '</div>';
+
+      return;
+    }
+
+    content.innerHTML =
+      teams.map(function(team) {
+
+        const teamName =
+          team.Team_Name ||
+          team.teamName ||
+          team.Name ||
+          team.name ||
+          '';
+
+        const shortName =
+          team.Kurzname ||
+          team.kurzname ||
+          '';
+
+        const age =
+          team.Altersklasse ||
+          team.altersklasse ||
+          '';
+
+        const gender =
+          team.Geschlecht ||
+          team.geschlecht ||
+          '';
+
+        const leagueId =
+          team.Liga_ID ||
+          team.ligaId ||
+          '';
+
+        return (
+          '<div class="content-card">' +
+
+            '<div class="content-card-category">' +
+              '🏀 Team' +
+            '</div>' +
+
+            '<div class="content-card-title">' +
+              escapeHtml(teamName || shortName || 'Team') +
+            '</div>' +
+
+            '<div class="content-card-text">' +
+              (shortName
+                ? '<strong>Kurzname:</strong> ' +
+                  escapeHtml(shortName) +
+                  '<br>'
+                : '') +
+              (age
+                ? '<strong>Altersklasse:</strong> ' +
+                  escapeHtml(age) +
+                  '<br>'
+                : '') +
+              (gender
+                ? '<strong>Geschlecht:</strong> ' +
+                  escapeHtml(gender) +
+                  '<br>'
+                : '') +
+              (leagueId
+                ? '<strong>Liga:</strong> ' +
+                  escapeHtml(leagueId)
+                : '') +
+            '</div>' +
+
+          '</div>'
+        );
+
+      }).join('');
 
   }
 
